@@ -1,25 +1,19 @@
-import qualified Text.Parsec             as P
-import qualified Data.ByteString.Lazy    as BSL
-import qualified Data.ByteString.Lazy.Char8   as BSLC
-import qualified Text.Parsec.ByteString.Lazy  as PB
-import qualified Text.Parsec.Combinator  as PC
--- import qualified Text.Parsec.Indent      as PI
-import qualified Text.Parsec.Char        as PChar
-import qualified Text.Parsec.Prim        as PP
--- import qualified Data.Monoid             as DM
-import qualified Control.Applicative     as CA
-
--- data MegaHaml = Empty | Node Element [MegaHaml]
--- type Element = String
+import qualified Data.Attoparsec.ByteString.Lazy  as PB
+import qualified Data.Attoparsec.ByteString.Char8 as PChar
+import qualified Data.Attoparsec.Combinator       as PC
+import qualified Data.ByteString.Lazy             as BSL
+import qualified Data.ByteString.Internal         as BSI
+import qualified Control.Applicative              as CA
 
 main :: IO ()
 main = do
   e <- inputHaml
-  print ((show e ) !! 0)
+  print ((show e) !! 0)
   return ()
 
-inputHaml :: IO (Either P.ParseError SoupOfTags)
-inputHaml = PB.parseFromFile megaParser "input.haml"
+inputHaml :: IO (Either String SoupOfTags)
+inputHaml = (BSL.readFile "input.haml") >>=
+  (return . PB.eitherResult . (PB.parse megaParser))
 
 megaParser :: PB.Parser SoupOfTags
 megaParser = do
@@ -30,19 +24,21 @@ aTag :: PB.Parser Tag
 aTag = do
   _ <- tabsOrWhitespacesOrNewLines
   _ <- PChar.char '%'
-  tagName <- PC.many1 PChar.alphaNum
-  position <- PP.getPosition
+  tagName <- PC.many1 $ PB.satisfy (PChar.isAlpha_ascii . BSI.w2c)
+  -- position <- PP.getPosition
   _ <- tabsOrWhitespacesOrNewLines
-  return (Tag (P.sourceLine position) (BSLC.pack tagName))
+  return (Tag (0) (BSL.pack tagName))
+  -- return (Tag (P.sourceLine position) (BSLC.pack tagName))
 
 tabsOrWhitespacesOrNewLines :: PB.Parser [Char]
 tabsOrWhitespacesOrNewLines = do
   CA.many (PC.choice [
       (PChar.char '\n'),
-      (PChar.char ' ')
+      PChar.space
+      -- (PChar.char ' ')
       ])
 
-data SoupOfTags = SoupOfTags [Tag]        deriving (Show)
-data Tag        = Tag Line BSL.ByteString deriving (Show)
+data SoupOfTags = SoupOfTags ![Tag]        deriving (Show)
+data Tag        = Tag !Line !BSL.ByteString deriving (Show)
 type Line = Int
 
