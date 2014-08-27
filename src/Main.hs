@@ -12,8 +12,9 @@ import           Control.Applicative     as CA
 
 main :: IO ()
 main = do
-  megaResult <- inputHaml
-  print megaResult
+  e <- inputHaml
+  print ((show e ) !! 0)
+  return ()
 
 inputHaml :: IO (Either P.ParseError SoupOfTags)
 inputHaml = PB.parseFromFile megaParser "input.haml"
@@ -26,7 +27,7 @@ megaParser = do
 aTag' :: PB.Parser Tag
 aTag' = Tag <$>
     (PChar.spaces *>
-    PChar.char '%' *> 
+    PChar.char '%' *>
     (P.sourceLine <$> PP.getPosition))
     <*>
     (PC.many1 PChar.alphaNum <*
@@ -34,6 +35,5 @@ aTag' = Tag <$>
 
 data SoupOfTags = SoupOfTags [Tag]        deriving (Show)
 data Tag        = Tag {
-              line    :: Int,
-              tagName :: String }         deriving (Show)
-
+              _line    :: Int,
+              _tagName :: String }         deriving (Show)
