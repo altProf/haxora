@@ -1,5 +1,7 @@
 import qualified Text.Parsec             as P
-import qualified Text.Parsec.ByteString  as PB
+import qualified Data.ByteString.Lazy    as BSL
+import qualified Data.ByteString.Lazy.Char8   as BSLC
+import qualified Text.Parsec.ByteString.Lazy  as PB
 import qualified Text.Parsec.Combinator  as PC
 -- import qualified Text.Parsec.Indent      as PI
 import qualified Text.Parsec.Char        as PChar
@@ -31,7 +33,7 @@ aTag = do
   tagName <- PC.many1 PChar.alphaNum
   position <- PP.getPosition
   _ <- tabsOrWhitespacesOrNewLines
-  return (Tag (P.sourceLine position) tagName)
+  return (Tag (P.sourceLine position) (BSLC.pack tagName))
 
 tabsOrWhitespacesOrNewLines :: PB.Parser [Char]
 tabsOrWhitespacesOrNewLines = do
@@ -41,6 +43,6 @@ tabsOrWhitespacesOrNewLines = do
       ])
 
 data SoupOfTags = SoupOfTags [Tag]        deriving (Show)
-data Tag        = Tag Line String         deriving (Show)
+data Tag        = Tag Line BSL.ByteString deriving (Show)
 type Line = Int
 
