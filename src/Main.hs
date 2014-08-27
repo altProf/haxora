@@ -12,8 +12,9 @@ import qualified Control.Applicative     as CA
 
 main :: IO ()
 main = do
-  megaResult <- inputHaml
-  print megaResult
+  e <- inputHaml
+  print ((show e ) !! 0)
+  return ()
 
 inputHaml :: IO (Either P.ParseError SoupOfTags)
 inputHaml = PB.parseFromFile megaParser "input.haml"
